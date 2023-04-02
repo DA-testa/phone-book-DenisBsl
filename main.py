@@ -1,4 +1,5 @@
 # python3
+#221RDB188 Deniss Buslajevs 8.grupa
 import math
 
 class Query:
