@@ -1,4 +1,6 @@
 # python3
+#221RDB188 Deniss Buslajevs 8.grupa
+import math
 
 class Query:
     def __init__(self, query):
@@ -6,6 +8,43 @@ class Query:
         self.number = int(query[1])
         if self.type == 'add':
             self.name = query[2]
+
+class PhoneBook:
+    def __init__(self):
+        self.buckets = [[] for _ in range(8)]
+
+    def _hash_func(self, s):
+        ans = 0
+        for c in reversed(str(s)):
+            ans = (ans * 0.6 + ord(c)) % 10000003
+        return math.floor(ans % 8)
+    
+    def add(self, cur_query):
+        string = cur_query.number
+        hashed = self._hash_func(string)
+        bucket = self.buckets[hashed]
+        for i in bucket:
+            if i.number == cur_query.number:
+                i.name = cur_query.name
+                return
+        self.buckets[hashed] = [cur_query] + bucket
+        return
+
+    def delete(self, string):
+        hashed = self._hash_func(string)
+        bucket = self.buckets[hashed]
+        for i, k in enumerate(bucket):
+            if k.number == string:
+                bucket.pop(i)
+                break
+        return
+
+    def find(self, string):
+        hashed = self._hash_func(string)
+        for i in self.buckets[hashed]:
+            if i.number == string:
+                return i.name
+        return "not found"
 
 def read_queries():
     n = int(input())
@@ -15,33 +54,17 @@ def write_responses(result):
     print('\n'.join(result))
 
 def process_queries(queries):
+    phonebook = PhoneBook()
     result = []
-    # Keep list of all existing (i.e. not deleted yet) contacts.
-    contacts = []
     for cur_query in queries:
         if cur_query.type == 'add':
-            # if we already have contact with such number,
-            # we should rewrite contact's name
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    contact.name = cur_query.name
-                    break
-            else: # otherwise, just add it
-                contacts.append(cur_query)
+            phonebook.add(cur_query)
         elif cur_query.type == 'del':
-            for j in range(len(contacts)):
-                if contacts[j].number == cur_query.number:
-                    contacts.pop(j)
-                    break
-        else:
-            response = 'not found'
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    response = contact.name
-                    break
+            phonebook.delete(cur_query.number)
+        elif cur_query.type == 'find':
+            response = phonebook.find(cur_query.number)
             result.append(response)
     return result
 
 if __name__ == '__main__':
     write_responses(process_queries(read_queries()))
-
